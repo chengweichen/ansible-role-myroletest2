@@ -1,0 +1,50 @@
+---
+# tasks file for php7
+
+    - name: ==> add PPA of php7 (community)
+      apt_repository: repo="ppa:ondrej/php-7.0"
+
+    - debug: msg="add PPA of nginx (official) -- delegated to roles"
+
+    - name: ==> download/update the package lists
+      apt: update_cache=yes
+
+    - name: ==> install php-fpm, and php-mysql (php7.0)
+      apt: name={{ item }} state=present
+      with_items:
+        - php7.0-fpm
+        - php7.0-mysql
+
+    - debug: msg="==> change php-fpm unix socket permission to the same as nginx"
+
+    - name: fix listen.owner for php-fpm
+      lineinfile:
+        dest: /etc/php/7.0/fpm/pool.d/www.conf
+        regexp: '^listen.owner\s*=.*$'
+        line: "listen.owner=nginx"
+        state: present
+      notify: restart php-fpm
+
+    - name: fix listen.group for php-fpm
+      lineinfile:
+        dest: /etc/php/7.0/fpm/pool.d/www.conf
+        regexp: '^listen.group\s*=.*$'
+        line: "listen.group=nginx"
+        state: present
+      notify: restart php-fpm
+
+    - name: fix user for php-fpm
+      lineinfile:
+        dest: /etc/php/7.0/fpm/pool.d/www.conf
+        regexp: '^user\s*=.*$'
+        line: "user = nginx"
+        state: present
+      notify: restart php-fpm
+
+    - name: fix group for php-fpm
+      lineinfile:
+        dest: /etc/php/7.0/fpm/pool.d/www.conf
+        regexp: '^group\s*=.*$'
+        line: "group = nginx"
+        state: present
+      notify: restart php-fpm
